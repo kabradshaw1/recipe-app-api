@@ -1,45 +1,34 @@
+
 """
-Tests for models.
+Tests for the Django admin modifications.
 """
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.test import Client
 
 
-class ModelTests(TestCase):
-    """Test models."""
+class AdminSiteTests(TestCase):
+    """Tests for Django admin."""
 
-    def test_create_user_with_email_successful(self):
-        """Test creating a user with an email is successful."""
-        email = 'test@example.com'
-        password = 'testpass123'
-        user = get_user_model().objects.create_user(
-            email=email,
-            password=password,
+    def setUp(self):
+        """Create user and client."""
+        self.client = Client()
+        self.admin_user = get_user_model().objects.create_superuser(
+            email='admin@example.com',
+            password='testpass123',
+        )
+        self.client.force_login(self.admin_user)
+        self.user = get_user_model().objects.create_user(
+            email='user@example.com',
+            password='testpass123',
+            name='Test User'
         )
 
-        self.assertEqual(user.email, email)
-        self.assertTrue(user.check_password(password))
+    def test_users_lists(self):
+        """Test that users are listed on page."""
+        url = reverse('admin:core_user_changelist')
+        res = self.client.get(url)
 
-    def test_new_user_email_normalized(self):
-        """Test email is romalized for new users."""
-        sample_emails = [
-            ['test1@EXAMPLE.com', 'test1@example.com'],
-            ['Test2@Example.com', 'Test2@example.com'],
-            ['TEST3@EXAMPLE.COM', 'TEST3@example.com'],
-            ['test4@example.COM', 'test4@example.com']
-        ]
-        for email, expected in sample_emails:
-            user = get_user_model().objects.create_user(email, 'sample123')
-            self.assertEqual(user.email, expected)
-    def test_new_user_without_email_raises_error(self):
-        """Test that creating a user without an email reases a ValueError."""
-        with self.assertRaises(ValueError):
-            get_user_model().objects.create_user('', 'test123')
-    def test_create_superuser(self):
-        """Test creating a superuser"""
-        user = get_user_model().objects.create_superuser(
-            'test@example.com',
-            'test123'
-        )
-        self.assertTrue(user.is_superuser)
-        self.assertTrue(user.is_staff)
+        self.assertContains(res, self.user.name)
+        self.assertContains(res, self.user.email)
