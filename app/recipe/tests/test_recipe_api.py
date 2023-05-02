@@ -22,7 +22,7 @@ def create_recipe(user, **params):
         'title': 'Sample recipe title',
         'time_minutes': 22,
         'price': Decimal('5.25'),
-        'description': 'Sample discription',
+        'discription': 'Sample discription',
         'link': 'http://example.com/recipe.pdf'
     }
     defaults.update(params)
@@ -75,7 +75,7 @@ class PrivateRecipeAPITests(TestCase):
 
         res = self.client.get(RECIPE_URL)
 
-        recipes = Recipe.objects.filts(user=self.user)
+        recipes = Recipe.objects.filter(user=self.user)
         serializer = RecipeSerializer(recipes, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
