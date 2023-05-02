@@ -17,7 +17,8 @@ from recipe.serializers import (
     RecipeDetailSerializer,
 )
 
-RECIPE_URL = reverse('recipe:recipe-list')
+
+RECIPES_URL = reverse('recipe:recipe-list')
 
 
 def detail_url(recipe_id):
@@ -31,42 +32,45 @@ def create_recipe(user, **params):
         'title': 'Sample recipe title',
         'time_minutes': 22,
         'price': Decimal('5.25'),
-        'discription': 'Sample discription',
-        'link': 'http://example.com/recipe.pdf'
+        'description': 'Sample description',
+        'link': 'http://example.com/recipe.pdf',
     }
     defaults.update(params)
 
     recipe = Recipe.objects.create(user=user, **defaults)
     return recipe
 
+
 class PublicRecipeAPITests(TestCase):
     """Test unauthenticated API requests."""
+
     def setUp(self):
         self.client = APIClient()
 
     def test_auth_required(self):
-        """Test Auth required to call API"""
-        res = self.client.get(RECIPE_URL)
+        """Test auth is required to call API."""
+        res = self.client.get(RECIPES_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-class PrivateRecipeAPITests(TestCase):
+
+class PrivateRecipeApiTests(TestCase):
     """Test authenticated API requests."""
 
     def setUp(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
             'user@example.com',
-            'testpass123'
+            'testpass123',
         )
         self.client.force_authenticate(self.user)
 
-    def test_retrive_recipes(self):
+    def test_retrieve_recipes(self):
         """Test retrieving a list of recipes."""
         create_recipe(user=self.user)
         create_recipe(user=self.user)
 
-        res = self.client.get(RECIPE_URL)
+        res = self.client.get(RECIPES_URL)
 
         recipes = Recipe.objects.all().order_by('-id')
         serializer = RecipeSerializer(recipes, many=True)
@@ -77,12 +81,12 @@ class PrivateRecipeAPITests(TestCase):
         """Test list of recipes is limited to authenticated user."""
         other_user = get_user_model().objects.create_user(
             'other@example.com',
-            'password123'
+            'password123',
         )
         create_recipe(user=other_user)
         create_recipe(user=self.user)
 
-        res = self.client.get(RECIPE_URL)
+        res = self.client.get(RECIPES_URL)
 
         recipes = Recipe.objects.filter(user=self.user)
         serializer = RecipeSerializer(recipes, many=True)

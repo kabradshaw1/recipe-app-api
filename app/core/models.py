@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email'
 
+
 class Recipe(models.Model):
     """Recipe object."""
     user = models.ForeignKey(
@@ -51,7 +52,7 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
     )
     title = models.CharField(max_length=255)
-    discription = models.TextField(blank=True)
+    description = models.TextField()
     time_minutes = models.IntegerField()
     price = models.DecimalField(max_digits=5, decimal_places=2)
     link = models.CharField(max_length=255, blank=True)
